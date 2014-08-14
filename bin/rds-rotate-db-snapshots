@@ -11,7 +11,7 @@ $opts = {
   :pattern => nil,
   :by_tags => nil,
   :dry_run => false,
-  :backoff_limit => 100,
+  :backoff_limit => 15,
   :create_snapshot => nil
 }
 
@@ -25,7 +25,7 @@ $time_periods = {
 def backoff()
   $backoffed = $backoffed + 1
 
-  if $opts[:backoff_limit] > 0 && $opts[backoff_limit] < $backoffed
+  if $opts[:backoff_limit] > 0 && $opts[:backoff_limit] < $backoffed
     puts "Too many backoff attempts. Sorry it didn't work out."
     exit 2
   end
@@ -93,7 +93,7 @@ def create_snapshot(name, db_indentifier_ids)
         begin
           $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id)
           puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Request for creation snapshot #{name} is pending (db: #{db_id})"
-        rescue AWS::RDS::Errors => e
+        rescue AWS::RDS::Errors::InvalidDBInstanceState => e
           backoff()
           retry
         end
@@ -142,7 +142,7 @@ OptionParser.new do |o|
     split_tag($opts[:by_tags],v)
   end
 
-  o.on("--backoff-limit LIMIT", "Backoff and retry when hitting RDS Error exceptions no more than this many times. Default is 100") do |v|
+  o.on("--backoff-limit LIMIT", "Backoff and retry when hitting RDS Error exceptions no more than this many times. Default is 15") do |v|
     $opts[:backoff_limit] = v
   end
 
