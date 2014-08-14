@@ -11,7 +11,8 @@ $opts = {
   :pattern => nil,
   :by_tags => nil,
   :dry_run => false,
-  :backoff_limit => 100
+  :backoff_limit => 100,
+  :create_snapshot => nil
 }
 
 $time_periods = {
@@ -83,6 +84,26 @@ def rotate_em(snapshots)
   end
 end
 
+def create_snapshot(name, db_indentifier_ids)
+  if !!name
+    name = name.gsub(/[^a-zA-Z0-9\-]/, '')
+    if name.size > 0
+      name = "#{name}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
+      db_indentifier_ids.each do |db_id|
+        begin
+          $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id)
+          puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Request for creation snapshot #{name} is pending (db: #{db_id})"
+        rescue AWS::RDS::Errors => e
+          backoff()
+          retry
+        end
+      end
+    else
+      puts "invalid snapshot name format - #{name}"
+      exit 1
+    end
+  end
+end
 
 def split_tag(hash,v)
     v.split(',').each do |pair|
@@ -125,6 +146,10 @@ OptionParser.new do |o|
     $opts[:backoff_limit] = v
   end
 
+  o.on("--create-snapshot STRING", "Use this option if you want to create a snapshot") do |v|
+    $opts[:create_snapshot] = v
+  end
+
   $time_periods.keys.sort { |a, b| $time_periods[a][:seconds] <=> $time_periods[b][:seconds] }.each do |period|
     o.on("--keep-#{period} NUMBER", Integer, "Number of #{period} snapshots to keep") do |v|
       $time_periods[period][:keep] = v
@@ -154,7 +179,7 @@ if $opts[:by_tags].nil?
   db_indentifier_ids = ARGV
 
   db_indentifier_ids.each do |db_id|
-    if db_id.nil? or db_id.gsub(/%s/, '').size < 1
+    if db_id.nil? or db_id.gsub(/\s/, '').size < 1
       # sanity check
       puts "Invalid db indentifier: #{db_id}"
       exit 1
@@ -182,6 +207,10 @@ begin
 rescue AWS::RDS::Errors => e
   backoff()
   retry
+end
+
+if $opts[:create_snapshot]
+  create_snapshot($opts[:create_snapshot], db_indentifier_ids)
 end
 
 all_snapshots = []
