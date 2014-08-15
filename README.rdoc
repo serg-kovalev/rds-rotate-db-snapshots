@@ -4,6 +4,9 @@ Provides a simple way to rotate RDS DB snapshots.
 
 == Usage
 
+[Gem installation]
+  gem install rds-rotate-db-snapshots
+
 [Usage]
   rds-rotate-db-snapshots [options] <db_indentifier>
 
