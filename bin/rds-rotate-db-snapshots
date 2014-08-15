@@ -91,8 +91,8 @@ def create_snapshot(name, db_indentifier_ids)
       name = "#{name}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
       db_indentifier_ids.each do |db_id|
         begin
-          $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id)
-          puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Request for creation snapshot #{name} is pending (db: #{db_id})"
+          $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id) unless $opts[:dry_run]
+          puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Creation snapshot #{name} is pending (db: #{db_id})"
         rescue AWS::RDS::Errors::InvalidDBInstanceState => e
           backoff()
           retry
@@ -139,6 +139,8 @@ OptionParser.new do |o|
 
   o.on("--by-tags TAG=VALUE,TAG=VALUE", "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all given TAG=VALUE pairs.") do |v|
     $opts[:by_tags] = {}
+    puts 'Hey! It\'s not implemented in RDS yet. Who knows, maybe they will add Tagging in RDS later.'
+    exit 0
     split_tag($opts[:by_tags],v)
   end
 
