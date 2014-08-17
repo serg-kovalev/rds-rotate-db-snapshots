@@ -1,6 +1,6 @@
 = rds-rotate-db-snapshots
 
-Provides a simple way to rotate RDS DB snapshots.
+Provides a simple way to rotate db snapshots in Amazon Relational Database Service (RDS).
 
 == Usage
 
