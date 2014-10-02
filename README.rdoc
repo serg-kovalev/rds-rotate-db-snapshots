@@ -1,4 +1,4 @@
-= rds-rotate-db-snapshots {<img src="https://badge.fury.io/rb/rds-rotate-db-snapshots.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rds-rotate-db-snapshots] {<img src="https://hakiri.io/github/serg-kovalev/rds-rotate-db-snapshots/master.svg" alt="security" />}[https://hakiri.io/github/serg-kovalev/rds-rotate-db-snapshots/master]
+= rds-rotate-db-snapshots {<img src="https://badge.fury.io/rb/rds-rotate-db-snapshots.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rds-rotate-db-snapshots] {<img src="https://travis-ci.org/serg-kovalev/rds-rotate-db-snapshots.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/serg-kovalev/rds-rotate-db-snapshots] {<img src="https://hakiri.io/github/serg-kovalev/rds-rotate-db-snapshots/master.svg" alt="security" />}[https://hakiri.io/github/serg-kovalev/rds-rotate-db-snapshots/master]
 
 Provides a simple way to rotate db snapshots in Amazon Relational Database Service (RDS).
 
