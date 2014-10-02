@@ -3,6 +3,12 @@
 
 Provides a simple way to rotate db snapshots in Amazon Relational Database Service (RDS).
 
+== Tested on Rubies
+- 1.9.3
+- 2.1
+- jruby
+- rbx-2
+
 == Usage
 
 [Gem installation]
