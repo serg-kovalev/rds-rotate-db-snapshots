@@ -79,5 +79,7 @@ DEPENDENCIES
   aws-sdk (>= 1.51.0)
   bundler
   jeweler
+  minitest
+  rake
   shoulda
   simplecov
