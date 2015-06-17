@@ -6,6 +6,7 @@ Provides a simple way to rotate db snapshots in Amazon Relational Database Servi
 == Tested on Rubies
 - 1.9.3
 - 2.1
+- 2.2
 - jruby
 - rbx-2
 
