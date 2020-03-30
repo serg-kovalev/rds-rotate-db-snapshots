@@ -271,7 +271,7 @@ if $opts[:by_tags]
 else
   begin
     all_snapshots = get_db_snapshots(snapshot_type: 'manual').
-      delete_if{ |e| e.status != 'available' }
+      delete_if{ |e| e[:status] != 'available' }
   rescue AWS::RDS::Errors => e
     backoff()
     retry
