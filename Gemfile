@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem 'aws-sdk-rds', '~> 1.83'
+gem 'aws-sdk-rds', '~> 1'
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
