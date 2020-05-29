@@ -94,7 +94,7 @@ def create_snapshot(name, db_indentifier_ids)
         begin
           $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id) unless $opts[:dry_run]
           puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Creation snapshot #{name} is pending (db: #{db_id})"
-        rescue Aws::RDS::Errors::InvalidDBInstanceState => e
+        rescue Aws::RDS::Errors::InvalidDBInstanceStateFault => e
           backoff()
           retry
         end
