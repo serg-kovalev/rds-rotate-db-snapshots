@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'aws-sdk'
+require 'aws-sdk-rds'
 require 'optparse'
 
 $opts = {
@@ -77,7 +77,7 @@ def rotate_em(snapshots)
       puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Deleting"
       begin
         $rds.delete_db_snapshot(db_snapshot_identifier: snapshot_id) unless $opts[:dry_run]
-      rescue AWS::RDS::Errors => e
+      rescue Aws::RDS::Errors => e
         backoff()
         retry
       end
@@ -94,7 +94,7 @@ def create_snapshot(name, db_indentifier_ids)
         begin
           $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id) unless $opts[:dry_run]
           puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Creation snapshot #{name} is pending (db: #{db_id})"
-        rescue AWS::RDS::Errors::InvalidDBInstanceState => e
+        rescue Aws::RDS::Errors::InvalidDBInstanceStateFault => e
           backoff()
           retry
         end
@@ -221,9 +221,14 @@ end
 
 $backoffed = 0
 begin
-  AWS.config(access_key_id: $opts[:aws_access_key], secret_access_key: $opts[:aws_secret_access_key], region: $opts[:aws_region], session_token: $opts[:aws_session_token])
-  $rds = AWS.rds.client
-rescue AWS::RDS::Errors => e
+  Aws.config.update(
+    access_key_id: $opts[:aws_access_key],
+    secret_access_key: $opts[:aws_secret_access_key],
+    region: $opts[:aws_region],
+    session_token: $opts[:aws_session_token]
+  )
+  $rds = Aws::RDS::Client.new
+rescue Aws::RDS::Errors => e
   backoff()
   retry
 end
@@ -238,7 +243,7 @@ if $opts[:by_tags]
     begin
       these_snapshots = $rds.describe_tags(snapshot_type: 'manual', filters: {'resource-type'=>"snapshot", 'key'=>tag, 'value'=>value}).
         delete_if{ |e| e.status != 'available' }
-    rescue AWS::RDS::Errors => e
+    rescue Aws::RDS::Errors => e
       backoff()
       retry
     end
@@ -262,7 +267,7 @@ if $opts[:by_tags]
     rotate_these = get_db_snapshots(db_instance_identifier: all_snapshots.map(&:db_instance_identifier).uniq).
       delete_if{ |e| !all_snapshots.include?(e.db_snapshot_identifier) }.
       sort {|a,b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
-  rescue AWS::RDS::Errors => e
+  rescue Aws::RDS::Errors => e
     backoff()
     retry
   end
@@ -272,7 +277,7 @@ else
   begin
     all_snapshots = get_db_snapshots(snapshot_type: 'manual').
       delete_if{ |e| e[:status] != 'available' }
-  rescue AWS::RDS::Errors => e
+  rescue Aws::RDS::Errors => e
     backoff()
     retry
   end
