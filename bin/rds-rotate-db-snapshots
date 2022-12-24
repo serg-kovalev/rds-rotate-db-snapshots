@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'aws-sdk'
+require 'aws-sdk-rds'
 require 'optparse'
 
 $opts = {
   :aws_access_key => ENV["AWS_ACCESS_KEY_ID"],
   :aws_secret_access_key => ENV["AWS_SECRET_ACCESS_KEY"],
+  :aws_session_token => ENV["AWS_SESSION_TOKEN"],
   :aws_region => ENV["AWS_REGION"],
   :pattern => nil,
   :by_tags => nil,
@@ -38,24 +39,24 @@ end
 def rotate_em(snapshots)
   # poor man's way to get a deep copy of our time_periods definition hash
   periods = Marshal.load(Marshal.dump($time_periods))
-  
+
   snapshots.each do |snapshot|
     time = snapshot[:snapshot_create_time]
     db_id = snapshot[:db_instance_identifier]
     snapshot_id = snapshot[:db_snapshot_identifier]
     description = snapshot_id
     keep_reason = nil
-    
+
     if $opts[:pattern] && description !~ /#{$opts[:pattern]}/
       puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Skipping snapshot with description #{description}"
       next
     end
-    
+
     periods.keys.sort { |a, b| periods[a][:seconds] <=> periods[b][:seconds] }.each do |period|
       period_info = periods[period]
       keep = period_info[:keep]
       keeping = period_info[:keeping]
-      
+
       time_string = time.strftime period_info[:format]
       if Time.now - time < keep * period_info[:seconds]
         if !keeping.key?(time_string) && keeping.length < keep
@@ -65,18 +66,18 @@ def rotate_em(snapshots)
         break
       end
     end
-    
+
     if keep_reason.nil? && snapshot == snapshots.last && $opts[:keep_last]
       keep_reason = 'last snapshot'
     end
-    
+
     if !keep_reason.nil?
       puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Keeping for #{keep_reason}"
     else
       puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Deleting"
       begin
         $rds.delete_db_snapshot(db_snapshot_identifier: snapshot_id) unless $opts[:dry_run]
-      rescue AWS::RDS::Errors => e
+      rescue Aws::RDS::Errors => e
         backoff()
         retry
       end
@@ -93,7 +94,7 @@ def create_snapshot(name, db_indentifier_ids)
         begin
           $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id) unless $opts[:dry_run]
           puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Creation snapshot #{name} is pending (db: #{db_id})"
-        rescue AWS::RDS::Errors::InvalidDBInstanceState => e
+        rescue Aws::RDS::Errors::InvalidDBInstanceStateFault => e
           backoff()
           retry
         end
@@ -116,6 +117,18 @@ def split_tag(hash,v)
     end
 end
 
+def get_db_snapshots(options)
+  snapshots = []
+  response = $rds.describe_db_snapshots(options)
+  while true do
+    snapshots += response.db_snapshots
+    break unless response[:marker]
+
+    response = $rds.describe_db_snapshots(options.merge(marker: response[:marker]))
+  end
+  snapshots
+end
+
 OptionParser.new do |o|
   script_name = File.basename($0)
   o.banner = "Usage: #{script_name} [options] <db_indentifier>\nUsage: #{script_name} --by-tags <tag=value,...> [other options]"
@@ -131,6 +144,10 @@ OptionParser.new do |o|
 
   o.on("--aws-region REGION", "AWS Region") do |v|
     $opts[:aws_region] = v
+  end
+
+  o.on("--aws-session-token SESSION_TOKEN", "AWS session token") do |v|
+    $opts[:aws_session_token] = v
   end
 
   o.on("--pattern STRING", "Snapshots without this string in the description will be ignored") do |v|
@@ -204,9 +221,14 @@ end
 
 $backoffed = 0
 begin
-  AWS.config(access_key_id: $opts[:aws_access_key], secret_access_key: $opts[:aws_secret_access_key], region: $opts[:aws_region])
-  $rds = AWS.rds.client
-rescue AWS::RDS::Errors => e
+  Aws.config.update(
+    access_key_id: $opts[:aws_access_key],
+    secret_access_key: $opts[:aws_secret_access_key],
+    region: $opts[:aws_region],
+    session_token: $opts[:aws_session_token]
+  )
+  $rds = Aws::RDS::Client.new
+rescue Aws::RDS::Errors => e
   backoff()
   retry
 end
@@ -221,7 +243,7 @@ if $opts[:by_tags]
     begin
       these_snapshots = $rds.describe_tags(snapshot_type: 'manual', filters: {'resource-type'=>"snapshot", 'key'=>tag, 'value'=>value}).
         delete_if{ |e| e.status != 'available' }
-    rescue AWS::RDS::Errors => e
+    rescue Aws::RDS::Errors => e
       backoff()
       retry
     end
@@ -242,10 +264,10 @@ if $opts[:by_tags]
   end
 
   begin
-    rotate_these = $rds.describe_db_snapshots(db_instance_identifier: all_snapshots.map(&:db_instance_identifier).uniq).
-      db_snapshots.delete_if{ |e| !all_snapshots.include?(e.db_snapshot_identifier) }.
+    rotate_these = get_db_snapshots(db_instance_identifier: all_snapshots.map(&:db_instance_identifier).uniq).
+      delete_if{ |e| !all_snapshots.include?(e.db_snapshot_identifier) }.
       sort {|a,b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
-  rescue AWS::RDS::Errors => e
+  rescue Aws::RDS::Errors => e
     backoff()
     retry
   end
@@ -253,9 +275,9 @@ if $opts[:by_tags]
   rotate_em(rotate_these)
 else
   begin
-    all_snapshots = $rds.describe_db_snapshots(snapshot_type: 'manual').db_snapshots.
-      delete_if{ |e| e.status != 'available' }
-  rescue AWS::RDS::Errors => e
+    all_snapshots = get_db_snapshots(snapshot_type: 'manual').
+      delete_if{ |e| e[:status] != 'available' }
+  rescue Aws::RDS::Errors => e
     backoff()
     retry
   end
