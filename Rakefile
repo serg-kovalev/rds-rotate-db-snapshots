@@ -11,7 +11,6 @@ require 'rake'
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "rds-rotate-db-snapshots"
   gem.homepage = "http://github.com/serg-kovalev/rds-rotate-db-snapshots"
   gem.license = "MIT"
@@ -19,6 +18,7 @@ Jeweler::Tasks.new do |gem|
   gem.description = %Q{Provides a simple way to rotate RDS DB snapshots with configurable retention periods.}
   gem.email = "kovserg@gmail.com"
   gem.authors = ["Siarhei Kavaliou"]
+  gem.version = File.exist?('VERSION') ? File.read('VERSION') : ""
 end
 Jeweler::RubygemsDotOrgTasks.new
 
@@ -28,7 +28,7 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
-require 'simplecov'
+# require 'simplecov'
 # Rcov::RcovTask.new do |test|
 #   test.libs << 'test'
 #   test.pattern = 'test/**/test_*.rb'
