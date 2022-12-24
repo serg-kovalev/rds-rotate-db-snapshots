@@ -10,7 +10,7 @@ group :development, :test do
 end
 
 group :development do
-  gem 'jeweler'
+  gem 'juwelier'
 end
 
 group :test do

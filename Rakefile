@@ -9,8 +9,8 @@ rescue Bundler::BundlerError => e
 end
 require 'rake'
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
+require 'juwelier'
+Juwelier::Tasks.new do |gem|
   gem.name = "rds-rotate-db-snapshots"
   gem.homepage = "http://github.com/serg-kovalev/rds-rotate-db-snapshots"
   gem.license = "MIT"
@@ -20,7 +20,7 @@ Jeweler::Tasks.new do |gem|
   gem.authors = ["Siarhei Kavaliou"]
   gem.version = File.exist?('VERSION') ? File.read('VERSION') : ""
 end
-Jeweler::RubygemsDotOrgTasks.new
+Juwelier::RubygemsDotOrgTasks.new
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
