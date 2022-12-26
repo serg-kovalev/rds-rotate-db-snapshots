@@ -15,14 +15,21 @@ Service (RDS).
 
 ## Usage
 
-Gem installation
-: gem install rds-rotate-db-snapshots
+Gem installation:
 
-Usage
-: rds-rotate-db-snapshots [options] <db_indentifier>
+```bash
+gem install rds-rotate-db-snapshots
+```
 
-Add this script to CRON (let's say it will run this script every X hours) and
-it will do the job well
+Usage:
+
+```bash
+rds-rotate-db-snapshots [options] <db_indentifier>
+```
+
+Add this script to CRON (let's say it will run this script every X hours) and it will do the job well
+
+```bash
 #/usr/bin/bash
 AWS_ACCESS_KEY='xxxxxxxxxxxxxxxxxxxx'
 AWS_SECRET_ACCESS_KEY='yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
@@ -31,40 +38,27 @@ DESCRIPTION_PREFIX='automatic-backup-'
 RDS_ROTATOR=/here/is/the/path/to/rds-rotate-db-snapshots
 DB_NAME='db_name_here'
 
-    $RDS_ROTATOR --aws-region $AWS_REGION --aws-access-key $AWS_ACCESS_KEY --aws-secret-access-key $AWS_SECRET_ACCESS_KEY --pattern $DESCRIPTION_PREFIX --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 1 --keep-yearly 0 --create-snapshot $DESCRIPTION_PREFIX$DB_NAME $DB_NAME
+$RDS_ROTATOR --aws-region $AWS_REGION --aws-access-key $AWS_ACCESS_KEY --aws-secret-access-key $AWS_SECRET_ACCESS_KEY --pattern $DESCRIPTION_PREFIX --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 1 --keep-yearly 0 --create-snapshot $DESCRIPTION_PREFIX$DB_NAME $DB_NAME
+```
 
 ## Options
 
---aws-access-key ACCESS_KEY
-: "AWS Access Key"
---aws-secret-access-key SECRET_KEY
-: "AWS Secret Access Key"
---aws-region REGION
-: "AWS Region"
---pattern STRING
-: "Snapshots without this string in the description will be ignored"
---by-tags TAG=VALUE,TAG=VALUE
-: "Instead of rotating specific snapshots, rotate over all the snapshots
-having the intersection of all given TAG=VALUE pairs."
---backoff-limit INTEGER
-: "Backoff and retry when hitting RDS Error exceptions no more than this
-many times. Default is 15"
---create-snapshot STRING
-: "Use this option if you want to create a snapshot"
---keep-hourly INTEGER
-: "Number of hourly snapshots to keep"
---keep-daily INTEGER
-: "Number of daily snapshots to keep"
---keep-weekly INTEGER
-: "Number of weekly snapshots to keep"
---keep-last
-: "Keep the most recent snapshot, regardless of time-based policy"
---dry-run
-: "Shows what would happen without doing anything"
+- `--aws-access-key ACCESS_KEY` "AWS Access Key"
+- `--aws-secret-access-key SECRET_KEY` "AWS Secret Access Key"
+- `--aws-region REGION` "AWS Region"
+- `--pattern STRING` "Snapshots without this string in the description will be ignored"
+- `--by-tags TAG=VALUE,TAG=VALUE` "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all given TAG=VALUE pairs."
+- `--backoff-limit INTEGER` "Backoff and retry when hitting RDS Error exceptions no more than this many times. Default is 15"
+- `--create-snapshot STRING` "Use this option if you want to create a snapshot"
+- `--keep-hourly INTEGER` "Number of hourly snapshots to keep"
+- `--keep-daily INTEGER` "Number of daily snapshots to keep"
+- `--keep-weekly INTEGER` "Number of weekly snapshots to keep"
+- `--keep-last` "Keep the most recent snapshot, regardless of time-based policy"
+- `--dry-run` "Shows what would happen without doing anything"
 
 ## Tips
 
-If you are not sure what happen - add option "dry-run".
+If you are not sure what happen - add option `--dry-run`.
 
 In that case the script will not destroy/create anything in RDS, it will just
 show the messages.
