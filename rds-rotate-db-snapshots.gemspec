@@ -11,20 +11,21 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Siarhei Kavaliou".freeze]
-  s.date = "2022-12-24"
+  s.date = "2022-12-26"
   s.description = "Provides a simple way to rotate RDS DB snapshots with configurable retention periods.".freeze
   s.email = "kovserg@gmail.com".freeze
   s.executables = ["rds-rotate-db-snapshots".freeze]
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     ".document",
-    ".travis.yml",
+    ".github/dependabot.yml",
+    ".github/workflows/ci.yml",
     "Gemfile",
     "LICENSE.txt",
-    "README.rdoc",
+    "README.md",
     "Rakefile",
     "VERSION",
     "bin/rds-rotate-db-snapshots",
