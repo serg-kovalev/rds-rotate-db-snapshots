@@ -1,200 +1,25 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'aws-sdk-rds'
-require 'optparse'
+require_relative '../lib/rds_rotate_db_snapshots'
 
-$opts = {
-  :aws_access_key => ENV["AWS_ACCESS_KEY_ID"],
-  :aws_secret_access_key => ENV["AWS_SECRET_ACCESS_KEY"],
-  :aws_session_token => ENV["AWS_SESSION_TOKEN"],
-  :aws_region => ENV["AWS_REGION"],
-  :pattern => nil,
-  :by_tags => nil,
-  :dry_run => false,
-  :backoff_limit => 15,
-  :create_snapshot => nil
-}
+rrds = RdsRotateDbSnapshots.new(script_name: File.basename($0), cli: true)
 
-$time_periods = {
-  :hourly  => { :seconds => 60 * 60, :format => '%Y-%m-%d-%H', :keep => 0, :keeping => {} },
-  :daily   => { :seconds => 24 * 60 * 60, :format => '%Y-%m-%d', :keep => 0, :keeping => {} },
-  :weekly  => { :seconds => 7 * 24 * 60 * 60, :format => '%Y-%W', :keep => 0, :keeping => {} },
-  :monthly => { :seconds => 30 * 24 * 60 * 60, :format => '%Y-%m', :keep => 0, :keeping => {} },
-  :yearly  => { :seconds => 12 * 30 * 24 * 60 * 60, :format => '%Y', :keep => 0, :keeping => {} },
-}
-def backoff()
-  $backoffed = $backoffed + 1
-
-  if $opts[:backoff_limit] > 0 && $opts[:backoff_limit] < $backoffed
-    puts "Too many backoff attempts. Sorry it didn't work out."
-    exit 2
-  end
-
-  naptime = rand(60) * $backoffed
-  puts "Backing off for #{naptime} seconds..."
-  sleep naptime
-end
-
-def rotate_em(snapshots)
-  # poor man's way to get a deep copy of our time_periods definition hash
-  periods = Marshal.load(Marshal.dump($time_periods))
-
-  snapshots.each do |snapshot|
-    time = snapshot[:snapshot_create_time]
-    db_id = snapshot[:db_instance_identifier]
-    snapshot_id = snapshot[:db_snapshot_identifier]
-    description = snapshot_id
-    keep_reason = nil
-
-    if $opts[:pattern] && description !~ /#{$opts[:pattern]}/
-      puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Skipping snapshot with description #{description}"
-      next
-    end
-
-    periods.keys.sort { |a, b| periods[a][:seconds] <=> periods[b][:seconds] }.each do |period|
-      period_info = periods[period]
-      keep = period_info[:keep]
-      keeping = period_info[:keeping]
-
-      time_string = time.strftime period_info[:format]
-      if Time.now - time < keep * period_info[:seconds]
-        if !keeping.key?(time_string) && keeping.length < keep
-          keep_reason = period
-          keeping[time_string] = snapshot
-        end
-        break
-      end
-    end
-
-    if keep_reason.nil? && snapshot == snapshots.last && $opts[:keep_last]
-      keep_reason = 'last snapshot'
-    end
-
-    if !keep_reason.nil?
-      puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Keeping for #{keep_reason}"
-    else
-      puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Deleting"
-      begin
-        $rds.delete_db_snapshot(db_snapshot_identifier: snapshot_id) unless $opts[:dry_run]
-      rescue Aws::RDS::Errors => e
-        backoff()
-        retry
-      end
-    end
-  end
-end
-
-def create_snapshot(name, db_indentifier_ids)
-  if !!name
-    name = name.gsub(/[^a-zA-Z0-9\-]/, '')
-    if name.size > 0
-      name = "#{name}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
-      db_indentifier_ids.each do |db_id|
-        begin
-          $rds.create_db_snapshot(db_snapshot_identifier: name, db_instance_identifier: db_id) unless $opts[:dry_run]
-          puts "  #{Time.now.strftime '%Y-%m-%d %H:%M:%S'} Creation snapshot #{name} is pending (db: #{db_id})"
-        rescue Aws::RDS::Errors::InvalidDBInstanceStateFault => e
-          backoff()
-          retry
-        end
-      end
-    else
-      puts "invalid snapshot name format - #{name}"
-      exit 1
-    end
-  end
-end
-
-def split_tag(hash,v)
-    v.split(',').each do |pair|
-        tag, value = pair.split('=',2)
-        if value.nil?
-          puts "invalid tag=value format"
-          exit 1
-        end
-        hash[tag] = value
-    end
-end
-
-def get_db_snapshots(options)
-  snapshots = []
-  response = $rds.describe_db_snapshots(options)
-  while true do
-    snapshots += response.db_snapshots
-    break unless response[:marker]
-
-    response = $rds.describe_db_snapshots(options.merge(marker: response[:marker]))
-  end
-  snapshots
-end
-
-OptionParser.new do |o|
-  script_name = File.basename($0)
-  o.banner = "Usage: #{script_name} [options] <db_indentifier>\nUsage: #{script_name} --by-tags <tag=value,...> [other options]"
-  o.separator ""
-
-  o.on("--aws-access-key ACCESS_KEY", "AWS Access Key") do |v|
-    $opts[:aws_access_key] = v
-  end
-
-  o.on("--aws-secret-access-key SECRET_KEY", "AWS Secret Access Key") do |v|
-    $opts[:aws_secret_access_key] = v
-  end
-
-  o.on("--aws-region REGION", "AWS Region") do |v|
-    $opts[:aws_region] = v
-  end
-
-  o.on("--aws-session-token SESSION_TOKEN", "AWS session token") do |v|
-    $opts[:aws_session_token] = v
-  end
-
-  o.on("--pattern STRING", "Snapshots without this string in the description will be ignored") do |v|
-    $opts[:pattern] = v
-  end
-
-  o.on("--by-tags TAG=VALUE,TAG=VALUE", "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all given TAG=VALUE pairs.") do |v|
-    $opts[:by_tags] = {}
-    puts 'Hey! It\'s not implemented in RDS yet. Who knows, maybe they will add Tagging in RDS later.'
-    exit 0
-    split_tag($opts[:by_tags],v)
-  end
-
-  o.on("--backoff-limit LIMIT", "Backoff and retry when hitting RDS Error exceptions no more than this many times. Default is 15") do |v|
-    $opts[:backoff_limit] = v
-  end
-
-  o.on("--create-snapshot STRING", "Use this option if you want to create a snapshot") do |v|
-    $opts[:create_snapshot] = v
-  end
-
-  $time_periods.keys.sort { |a, b| $time_periods[a][:seconds] <=> $time_periods[b][:seconds] }.each do |period|
-    o.on("--keep-#{period} NUMBER", Integer, "Number of #{period} snapshots to keep") do |v|
-      $time_periods[period][:keep] = v
-    end
-  end
-
-  o.on("--keep-last", "Keep the most recent snapshot, regardless of time-based policy") do |v|
-    $opts[:keep_last] = true
-  end
-
-  o.on("--dry-run", "Shows what would happen without doing anything") do |v|
-    $opts[:dry_run] = true
-  end
-end.parse!
-
-if $opts[:aws_access_key].nil? || $opts[:aws_secret_access_key].nil?
-  puts "You must specify your Amazon credentials via --aws-access-key and --aws-secret_access-key"
+if rrds.options[:aws_access_key].nil? || rrds.options[:aws_secret_access_key].nil?
+  puts "You must specify your Amazon credentials via --aws-access-key and --aws-secret_access-key and --aws-session-token"
   exit 1
 end
 
-if ARGV.empty? and $opts[:by_tags].nil?
+if rrds.options[:aws_region].nil?
+  puts "You must specify your AWS Region via --aws-region"
+  exit 1
+end
+
+if ARGV.empty? and rrds.options[:by_tags].nil?
   puts "You must provide at least one DB Indentifier when not rotating by tags"
   exit 1
 end
 
-if $opts[:by_tags].nil?
+if rrds.options[:by_tags].nil?
   db_indentifier_ids = ARGV
 
   db_indentifier_ids.each do |db_id|
@@ -208,83 +33,29 @@ else
   if !ARGV.empty?
     puts "Ignoring supplied db_indentifier_ids because we're rotating by tags."
   end
-  if $opts[:by_tags].length == 0
+  if rrds.options[:by_tags].length == 0
     puts "Rotating by tags but no tags specified? Refusing to rotate all snapshots!"
     exit 1
   end
 end
 
-if $opts[:backoff_limit] < 0
+if rrds.options[:backoff_limit] < 0
   puts "A negative backoff limit doesn't make much sense."
   exit 1
 end
 
-$backoffed = 0
-begin
-  Aws.config.update(
-    access_key_id: $opts[:aws_access_key],
-    secret_access_key: $opts[:aws_secret_access_key],
-    region: $opts[:aws_region],
-    session_token: $opts[:aws_session_token]
-  )
-  $rds = Aws::RDS::Client.new
-rescue Aws::RDS::Errors => e
-  backoff()
-  retry
-end
-
-if $opts[:create_snapshot]
-  create_snapshot($opts[:create_snapshot], db_indentifier_ids)
+if rrds.options[:create_snapshot]
+  rrds.create_snapshot(rrds.options[:create_snapshot], db_indentifier_ids)
 end
 
 all_snapshots = []
-if $opts[:by_tags]
-  $opts[:by_tags].each do |tag, value|
-    begin
-      these_snapshots = $rds.describe_tags(snapshot_type: 'manual', filters: {'resource-type'=>"snapshot", 'key'=>tag, 'value'=>value}).
-        delete_if{ |e| e.status != 'available' }
-    rescue Aws::RDS::Errors => e
-      backoff()
-      retry
-    end
-    if these_snapshots.length == 0
-      puts "(tag,value)=(#{tag},#{value}) found no snapshots; nothing to rotate!"
-      exit 0
-    end
-    if all_snapshots.length == 0
-      remaining_snapshots = these_snapshots
-    else
-      remaining_snapshots = all_snapshots & these_snapshots
-    end
-    if remaining_snapshots.length == 0
-      puts "No remaining snapshots after applying (tag,value)=(#{tag},#{value}) filter; nothing to rotate!"
-      exit 0
-    end
-    all_snapshots = remaining_snapshots
-  end
-
-  begin
-    rotate_these = get_db_snapshots(db_instance_identifier: all_snapshots.map(&:db_instance_identifier).uniq).
-      delete_if{ |e| !all_snapshots.include?(e.db_snapshot_identifier) }.
-      sort {|a,b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
-  rescue Aws::RDS::Errors => e
-    backoff()
-    retry
-  end
-
-  rotate_em(rotate_these)
+if rrds.options[:by_tags]
+  rrds.rotate_by_tags
 else
-  begin
-    all_snapshots = get_db_snapshots(snapshot_type: 'manual').
-      delete_if{ |e| e[:status] != 'available' }
-  rescue Aws::RDS::Errors => e
-    backoff()
-    retry
-  end
-
+  snapshots = rrds.get_db_snapshots(snapshot_type: 'manual').delete_if{ |e| e[:status] != 'available' }
   db_indentifier_ids.each do |db_id|
-    rotate_em(
-      all_snapshots.select {|ss| ss[:db_instance_identifier] == db_id }.
+    rrds.rotate_em(
+      snapshots.select {|ss| ss[:db_instance_identifier] == db_id }.
         sort {|a,b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
     )
   end
