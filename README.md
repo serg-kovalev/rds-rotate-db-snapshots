@@ -11,7 +11,6 @@ Service (RDS).
 - 2.7
 - 3.1
 - 3.2
-- jruby
 
 ## Usage
 

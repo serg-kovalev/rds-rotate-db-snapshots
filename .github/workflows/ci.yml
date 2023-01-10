@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ruby_version: [2.7, 3.0, 3.1, 'jruby']
+        ruby_version: [2.7, 3.0, 3.1]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,4 +25,19 @@ jobs:
       - name: Bundle Install
         run: bundle install
       - name: Test
-        run: bundle exec rake test
+        run: bundle exec rspec
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.ruby_version }}
+          parallel: true
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
