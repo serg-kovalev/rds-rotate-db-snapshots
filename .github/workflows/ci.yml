@@ -24,5 +24,8 @@ jobs:
         run: gem install bundler
       - name: Bundle Install
         run: bundle install
+      - name: Coveralls creds
+        run: |
+          echo "repo_token: ${{ secrets.COVERALLS_TOKEN }}" > .coveralls.yml
       - name: Test
-        run: bundle exec rake test
+        run: bundle exec rspec
