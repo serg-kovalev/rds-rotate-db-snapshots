@@ -3,8 +3,8 @@ require 'bundler'
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
-  $stderr.puts e.message
-  $stderr.puts "Run `bundle install` to install missing gems"
+  warn e.message
+  warn "Run `bundle install` to install missing gems"
   exit e.status_code
 end
 require 'rake'
@@ -14,8 +14,8 @@ Juwelier::Tasks.new do |gem|
   gem.name = "rds-rotate-db-snapshots"
   gem.homepage = "http://github.com/serg-kovalev/rds-rotate-db-snapshots"
   gem.license = "MIT"
-  gem.summary = %Q{Amazon RDS DB snapshot rotator}
-  gem.description = %Q{Provides a simple way to rotate RDS DB snapshots with configurable retention periods.}
+  gem.summary = %(Amazon RDS DB snapshot rotator)
+  gem.description = %(Provides a simple way to rotate RDS DB snapshots with configurable retention periods.)
   gem.email = "kovserg@gmail.com"
   gem.authors = ["Siarhei Kavaliou"]
   gem.version = File.exist?('VERSION') ? File.read('VERSION') : ""

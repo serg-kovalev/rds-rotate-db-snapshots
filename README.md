@@ -9,6 +9,7 @@ Service (RDS).
 ## Tested on Rubies
 
 - 2.7
+- 3.0
 - 3.1
 - 3.2
 

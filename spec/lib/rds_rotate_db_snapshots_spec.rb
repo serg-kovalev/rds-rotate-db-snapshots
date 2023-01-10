@@ -5,6 +5,7 @@ describe RdsRotateDbSnapshots do
 
   let(:script_name) { "test" }
   let(:cli) { true }
+
   before do
     allow(Aws::RDS::Client).to receive(:new)
   end
@@ -43,11 +44,11 @@ describe RdsRotateDbSnapshots do
   describe "#time_periods" do
     it "returns time periods" do
       expect(subject.time_periods).to eq(
-        :daily=>{:format=>"%Y-%m-%d", :keep=>0, :keeping=>{}, :seconds=>86400},
-        :hourly => {:format=>"%Y-%m-%d-%H", :keep=>0, :keeping=>{}, :seconds=>3600},
-        :monthly => {:format=>"%Y-%m", :keep=>0, :keeping=>{}, :seconds=>2592000},
-        :weekly => {:format=>"%Y-%W", :keep=>0, :keeping=>{}, :seconds=>604800},
-        :yearly=>{:format=>"%Y", :keep=>0, :keeping=>{}, :seconds=>31104000}
+        daily: { format: "%Y-%m-%d", keep: 0, keeping: {}, seconds: 86_400 },
+        hourly: { format: "%Y-%m-%d-%H", keep: 0, keeping: {}, seconds: 3600 },
+        monthly: { format: "%Y-%m", keep: 0, keeping: {}, seconds: 2_592_000 },
+        weekly: { format: "%Y-%W", keep: 0, keeping: {}, seconds: 604_800 },
+        yearly: { format: "%Y", keep: 0, keeping: {}, seconds: 31_104_000 }
       )
     end
   end

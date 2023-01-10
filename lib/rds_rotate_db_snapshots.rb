@@ -9,6 +9,7 @@ class RdsRotateDbSnapshots
   include RdsRotateDbSnapshots::Actions
 
   attr_reader :options
+
   with_backoff :get_db_snapshots, :create_snapshot, :rotate_em
 
   def initialize(script_name: nil, cli: false, options: {})
@@ -22,7 +23,7 @@ class RdsRotateDbSnapshots
   def rds_client
     @rds_client ||= RdsRotateDbSnapshots::RdsClient.new(@options)
   end
-  alias_method :client, :rds_client
+  alias client rds_client
 
   def reset_backoff
     @backoff_counter = 0
@@ -43,14 +44,14 @@ class RdsRotateDbSnapshots
   end
 
   def backoff
-    @backoff_counter = @backoff_counter + 1
-  
+    @backoff_counter += 1
+
     # TODO: re-work
-    if options && options[:backoff_limit] > 0 && options[:backoff_limit] < @backoff_counter
+    if options && options[:backoff_limit].positive? && options[:backoff_limit] < @backoff_counter
       puts "Too many backoff attempts. Sorry it didn't work out."
       exit 2
     end
-  
+
     naptime = rand(60) * @backoff_counter
     puts "Backing off for #{naptime} seconds..."
     sleep naptime

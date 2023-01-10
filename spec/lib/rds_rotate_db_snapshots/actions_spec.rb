@@ -4,7 +4,7 @@ RSpec.shared_examples 'rds_rotate_db_snapshots actions' do
   let(:rds_client) { instance_double(RdsRotateDbSnapshots::RdsClient) }
   let(:client) { rds_client }
   let(:options) do
-    { 
+    {
       aws_access_key: 'ACCESS_KEY',
       aws_secret_access_key: 'SECRET_KEY',
       aws_region: 'REGION',
@@ -50,7 +50,6 @@ RSpec.shared_examples 'rds_rotate_db_snapshots actions' do
       expect(snapshots).to eq(rds_snapshots)
     end
   end
-
 end
 
 class Test
@@ -85,7 +84,7 @@ class Test
   end
 
   def backoff
-    @backoff_counter = @backoff_counter + 1
+    @backoff_counter += 1
   end
 end
 

@@ -1,17 +1,19 @@
 require 'helper'
 
 describe RdsRotateDbSnapshots::RdsClient do
-  let(:options) { {
-    :aws_access_key => "ACCESS_KEY",
-    :aws_secret_access_key => "SECRET_KEY",
-    :aws_session_token => "SESSION_TOKEN",
-    :aws_region => "REGION"
-  } }
-  let(:rds_client) { RdsRotateDbSnapshots::RdsClient.new(options) }
+  let(:options) do
+    {
+    aws_access_key: "ACCESS_KEY",
+    aws_secret_access_key: "SECRET_KEY",
+    aws_session_token: "SESSION_TOKEN",
+    aws_region: "REGION"
+  }
+  end
+  let(:rds_client) { described_class.new(options) }
 
   it 'configures the client with the correct credentials and region' do
-    expect(rds_client.instance_variable_get(:@client).config.credentials).
-      to have_attributes(access_key_id: "ACCESS_KEY", secret_access_key: "SECRET_KEY", session_token: "SESSION_TOKEN")
+    expect(rds_client.instance_variable_get(:@client).config.credentials)
+      .to have_attributes(access_key_id: "ACCESS_KEY", secret_access_key: "SECRET_KEY", session_token: "SESSION_TOKEN")
     expect(rds_client.instance_variable_get(:@client).config.region).to eq("REGION")
   end
 
