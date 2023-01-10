@@ -48,10 +48,10 @@ class RdsRotateDbSnapshots
     end
 
     def create_snapshot(name, db_indentifier_ids)
-      return unless !!name
+      return if name.nil?
 
       name = name.gsub(/[^a-zA-Z0-9-]/, '')
-      if name.size > 0
+      if name.size.positive?
         name = "#{name}-#{Time.now.strftime('%Y%m%d%H%M%S')}"
         db_indentifier_ids.each do |db_id|
           unless options[:dry_run]
@@ -72,7 +72,7 @@ class RdsRotateDbSnapshots
     def get_db_snapshots(options)
       snapshots = []
       response = client.describe_db_snapshots(options)
-      while true
+      loop do
         snapshots += response.db_snapshots
         break unless response[:marker]
 
@@ -88,7 +88,7 @@ class RdsRotateDbSnapshots
           snapshot_type: 'manual', filters: { 'resource-type' => "snapshot", 'key' => tag, 'value' => value }
         ).delete_if { |e| e.status != 'available' }
         # TODO: re-work
-        if snapshots.length == 0
+        if snapshots.empty?
           puts "(tag,value)=(#{tag},#{value}) found no snapshots; nothing to rotate!"
           exit 0
         end

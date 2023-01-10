@@ -9,7 +9,7 @@ describe RdsRotateDbSnapshots::RdsClient do
     aws_region: "REGION"
   }
   end
-  let(:rds_client) { RdsRotateDbSnapshots::RdsClient.new(options) }
+  let(:rds_client) { described_class.new(options) }
 
   it 'configures the client with the correct credentials and region' do
     expect(rds_client.instance_variable_get(:@client).config.credentials)

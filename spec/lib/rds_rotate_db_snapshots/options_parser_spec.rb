@@ -1,7 +1,7 @@
 require 'helper'
 
 describe RdsRotateDbSnapshots::OptionsParser do
-  subject { RdsRotateDbSnapshots::OptionsParser.new(script_name: script_name, cli: true).parse! }
+  subject { described_class.new(script_name: script_name, cli: true).parse! }
 
   let(:script_name) { "rds_rotate_snapshots.rb" }
 
@@ -9,12 +9,8 @@ describe RdsRotateDbSnapshots::OptionsParser do
     before { ARGV.clear }
 
     it "parses options correctly" do
-      ARGV.concat(["--aws-access-key", "ACCESS_KEY",
-                   "--aws-secret-access-key", "SECRET_KEY",
-                   "--aws-region", "REGION",
-                   "--pattern", "PATTERN",
-                   "--backoff-limit", "20",
-                   "--create-snapshot", "snapshot"])
+      ARGV.push("--aws-access-key", "ACCESS_KEY", "--aws-secret-access-key", "SECRET_KEY", "--aws-region", "REGION",
+                "--pattern", "PATTERN", "--backoff-limit", "20", "--create-snapshot", "snapshot")
       options = subject
 
       expect(options[:aws_access_key]).to eq("ACCESS_KEY")
@@ -26,7 +22,7 @@ describe RdsRotateDbSnapshots::OptionsParser do
     end
 
     it "raises NotImplementedError when by-tags option is passed and it is not implemented" do
-      ARGV.concat(["--by-tags", "tag=value,tag2=value"])
+      ARGV.push("--by-tags", "tag=value,tag2=value")
 
       expect { subject }.to raise_error(RdsRotateDbSnapshots::OptionsParser::NotImplementedError)
     end

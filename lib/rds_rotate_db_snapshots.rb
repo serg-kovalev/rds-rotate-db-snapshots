@@ -47,7 +47,7 @@ class RdsRotateDbSnapshots
     @backoff_counter += 1
 
     # TODO: re-work
-    if options && options[:backoff_limit] > 0 && options[:backoff_limit] < @backoff_counter
+    if options && options[:backoff_limit].positive? && options[:backoff_limit] < @backoff_counter
       puts "Too many backoff attempts. Sorry it didn't work out."
       exit 2
     end
