@@ -10,10 +10,10 @@ group :development do
 end
 
 group :test do
-  gem "coveralls", ">= 0.8.19", require: false
   gem "rspec", ">= 3.2"
   gem "rspec-mocks", ">= 3"
   gem "rubocop", "~> 0.50.0"
   gem "simplecov", ">= 0.13"
+  gem 'simplecov-lcov', '~> 0.8.0'
   gem "webmock"
 end
