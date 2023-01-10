@@ -42,9 +42,10 @@ class RdsRotateDbSnapshots
       !!@cli
     end
 
-    def init_cli_parser
-      @parser ||= OptionParser.new do |o|
-        o.banner = "Usage: #{script_name} [options] <db_indentifier>\nUsage: #{script_name} --by-tags <tag=value,...> [other options]"
+    def init_cli_parser # rubocop:disable Metrics/MethodLength
+      @parser ||= OptionParser.new do |o| # rubocop:disable Metrics/BlockLength
+        o.banner = "Usage: #{script_name} [options] <db_indentifier>\nUsage: #{script_name} " \
+                   "--by-tags <tag=value,...> [other options]"
         o.separator ""
 
         o.on("--aws-access-key ACCESS_KEY", "AWS Access Key") do |v|
@@ -68,7 +69,8 @@ class RdsRotateDbSnapshots
         end
 
         o.on("--by-tags TAG=VALUE,TAG=VALUE",
-             "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all given TAG=VALUE pairs.") do |v|
+             "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all " \
+             "given TAG=VALUE pairs.") do |v|
           @options[:by_tags] = {}
           raise NotImplementedError,
                 'Hey! It\'s not implemented in RDS yet. Who knows, maybe they will add Tagging in RDS later.'

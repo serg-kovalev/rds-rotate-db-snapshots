@@ -5,7 +5,8 @@ require_relative '../lib/rds_rotate_db_snapshots'
 rrds = RdsRotateDbSnapshots.new(script_name: File.basename($PROGRAM_NAME), cli: true)
 
 if rrds.options[:aws_access_key].nil? || rrds.options[:aws_secret_access_key].nil?
-  puts "You must specify your Amazon credentials via --aws-access-key and --aws-secret_access-key and --aws-session-token"
+  puts "You must specify your Amazon credentials via --aws-access-key and --aws-secret_access-key and " \
+       "--aws-session-token"
   exit 1
 end
 
