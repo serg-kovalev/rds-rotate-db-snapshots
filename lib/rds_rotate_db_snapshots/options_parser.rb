@@ -95,15 +95,15 @@ class RdsRotateDbSnapshots
           @options[:dry_run] = true
         end
       end
+    end
 
-      def split_tag(hash,v)
-        v.split(',').each do |pair|
-          tag, value = pair.split('=',2)
-          if value.nil?
-            raise InvalidArgument, "invalid tag=value format"
-          end
-          hash[tag] = value
+    def split_tag(hash,v)
+      v.split(',').each do |pair|
+        tag, value = pair.split('=',2)
+        if value.nil?
+          raise InvalidArgument, "invalid tag=value format"
         end
+        hash[tag] = value
       end
     end
   end

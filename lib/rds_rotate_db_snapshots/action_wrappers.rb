@@ -9,7 +9,10 @@ class RdsRotateDbSnapshots
             reset_backoff
             begin
               super *args
-            rescue Aws::RDS::Errors => e
+            rescue Aws::RDS::Errors::ServiceError => e
+              raise if e.is_a? Aws::RDS::Errors::ExpiredToken
+              # TODO: re-work
+              puts "Error: #{e}"
               backoff
               retry
             end
