@@ -22,12 +22,6 @@ Juwelier::Tasks.new do |gem|
 end
 Juwelier::RubygemsDotOrgTasks.new
 
-require 'rake/testtask'
-Rake::TestTask.new(:test) do |test|
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
-end
-
 require 'rdoc/task'
 Rake::RDocTask.new do |rdoc|
   version = File.exist?('VERSION') ? File.read('VERSION') : ""
