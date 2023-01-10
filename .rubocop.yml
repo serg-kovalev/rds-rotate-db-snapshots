@@ -1,0 +1,88 @@
+require:
+  - rubocop-rspec
+# inherit_from: .rubocop_todo.yml
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2.0
+  Exclude:
+    - 'bin/{bundle,rails,rake}'
+
+Layout/LineLength:
+  Max: 120
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Lint/RescueException:
+  Enabled: true
+
+Style/EmptyElse:
+  EnforcedStyle: empty
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: false
+
+Style/StringLiterals:
+  Enabled: false
+
+Layout/SpaceInLambdaLiteral:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/NumericLiteralPrefix:
+  Enabled: false
+
+Style/EmptyMethod:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
+Layout/ParameterAlignment:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Lint/DuplicateRegexpCharacterClassElement: # (new in 1.1)
+  Enabled: true
+Lint/EmptyBlock: # (new in 1.1)
+  Enabled: true
+Lint/NoReturnInBeginEndBlocks: # (new in 1.2)
+  Enabled: true
+Lint/ToEnumArguments: # (new in 1.1)
+  Enabled: true
+Lint/UnmodifiedReduceAccumulator: # (new in 1.1)
+  Enabled: true
+Style/ArgumentsForwarding: # (new in 1.1)
+  Enabled: true
+Style/CollectionCompact: # (new in 1.2)
+  Enabled: true
+Style/DocumentDynamicEvalDefinition: # (new in 1.1)
+  Enabled: true
+Style/NegatedIfElseCondition: # (new in 1.2)
+  Enabled: true
+Style/SwapValues: # (new in 1.1)
+  Enabled: true
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*' # Swagger specs require large blocks
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never

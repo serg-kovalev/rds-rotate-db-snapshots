@@ -1,12 +1,13 @@
 require 'helper'
 
 describe RdsRotateDbSnapshots::OptionsParser do
-  let(:script_name) { "rds_rotate_snapshots.rb" }
   subject { RdsRotateDbSnapshots::OptionsParser.new(script_name: script_name, cli: true).parse! }
+
+  let(:script_name) { "rds_rotate_snapshots.rb" }
 
   describe "#parse!" do
     before { ARGV.clear }
-  
+
     it "parses options correctly" do
       ARGV.concat(["--aws-access-key", "ACCESS_KEY",
                    "--aws-secret-access-key", "SECRET_KEY",

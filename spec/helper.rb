@@ -27,7 +27,7 @@ require "diff/lcs" # You need diff/lcs installed to run specs.
 # require 'stringio'
 require "webmock/rspec"
 
-WebMock.disable_net_connect!(:allow => "coveralls.io")
+WebMock.disable_net_connect!(allow: "coveralls.io")
 
 $0 = "rds_rotate_db_snapshots"
 ARGV.clear

@@ -23,16 +23,14 @@ if rrds.options[:by_tags].nil?
   db_indentifier_ids = ARGV
 
   db_indentifier_ids.each do |db_id|
-    if db_id.nil? or db_id.gsub(/\s/, '').size < 1
-      # sanity check
-      puts "Invalid db indentifier: #{db_id}"
-      exit 1
-    end
+    next unless db_id.nil? or db_id.gsub(/\s/, '').size < 1
+
+    # sanity check
+    puts "Invalid db indentifier: #{db_id}"
+    exit 1
   end
 else
-  if !ARGV.empty?
-    puts "Ignoring supplied db_indentifier_ids because we're rotating by tags."
-  end
+  puts "Ignoring supplied db_indentifier_ids because we're rotating by tags." unless ARGV.empty?
   if rrds.options[:by_tags].length == 0
     puts "Rotating by tags but no tags specified? Refusing to rotate all snapshots!"
     exit 1
@@ -44,19 +42,17 @@ if rrds.options[:backoff_limit] < 0
   exit 1
 end
 
-if rrds.options[:create_snapshot]
-  rrds.create_snapshot(rrds.options[:create_snapshot], db_indentifier_ids)
-end
+rrds.create_snapshot(rrds.options[:create_snapshot], db_indentifier_ids) if rrds.options[:create_snapshot]
 
 all_snapshots = []
 if rrds.options[:by_tags]
   rrds.rotate_by_tags
 else
-  snapshots = rrds.get_db_snapshots(snapshot_type: 'manual').delete_if{ |e| e[:status] != 'available' }
+  snapshots = rrds.get_db_snapshots(snapshot_type: 'manual').delete_if { |e| e[:status] != 'available' }
   db_indentifier_ids.each do |db_id|
     rrds.rotate_em(
-      snapshots.select {|ss| ss[:db_instance_identifier] == db_id }.
-        sort {|a,b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
+      snapshots.select { |ss| ss[:db_instance_identifier] == db_id }
+        .sort { |a, b| a[:snapshot_create_time] <=> b[:snapshot_create_time] }
     )
   end
 end

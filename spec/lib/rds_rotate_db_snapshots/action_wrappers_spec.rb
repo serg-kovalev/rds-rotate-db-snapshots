@@ -15,7 +15,7 @@ class TestClass
   end
 
   def backoff
-    @backoff_counter = @backoff_counter + 1
+    @backoff_counter += 1
 
     raise StandardError, 'gave up' if @options[:backoff_limit] > 0 && @options[:backoff_limit] < @backoff_counter
   end
@@ -33,13 +33,13 @@ describe RdsRotateDbSnapshots::ActionWrappers do
       allow(subject).to receive(:test_method).and_raise(Aws::RDS::Errors::ExpiredToken.new(nil, 'token expired'))
       expect(subject).not_to receive(:reset_backoff)
       expect(subject).not_to receive(:backoff)
-      expect{subject.test_method}.to raise_error(Aws::RDS::Errors::ExpiredToken)
+      expect { subject.test_method }.to raise_error(Aws::RDS::Errors::ExpiredToken)
     end
 
     it "retries if the exception raised is Aws::RDS::Errors::ServiceError" do
       expect(subject).to receive(:backoff).exactly(6).and_call_original
 
-      expect{ subject.test_method }.to raise_error(StandardError, 'gave up')
+      expect { subject.test_method }.to raise_error(StandardError, 'gave up')
     end
   end
 end
