@@ -7,6 +7,7 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2.0
   Exclude:
+    - rds-rotate-db-snapshots.gemspec
     - 'bin/{bundle,rails,rake}'
     - vendor/**/*
 
