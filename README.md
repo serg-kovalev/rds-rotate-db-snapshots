@@ -33,18 +33,20 @@ Add this script to CRON (let's say it will run this script every X hours) and it
 #/usr/bin/bash
 AWS_ACCESS_KEY='xxxxxxxxxxxxxxxxxxxx'
 AWS_SECRET_ACCESS_KEY='yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+AWS_SESSION_TOKEN='session_token_goes_here'
 AWS_REGION='eu-west-1'
 DESCRIPTION_PREFIX='automatic-backup-'
 RDS_ROTATOR=/here/is/the/path/to/rds-rotate-db-snapshots
 DB_NAME='db_name_here'
 
-$RDS_ROTATOR --aws-region $AWS_REGION --aws-access-key $AWS_ACCESS_KEY --aws-secret-access-key $AWS_SECRET_ACCESS_KEY --pattern $DESCRIPTION_PREFIX --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 1 --keep-yearly 0 --create-snapshot $DESCRIPTION_PREFIX$DB_NAME $DB_NAME
+$RDS_ROTATOR --aws-region $AWS_REGION --aws-access-key $AWS_ACCESS_KEY --aws-secret-access-key $AWS_SECRET_ACCESS_KEY --aws-session-token $AWS_SESSION_TOKEN --pattern $DESCRIPTION_PREFIX --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 1 --keep-yearly 0 --create-snapshot $DESCRIPTION_PREFIX$DB_NAME $DB_NAME
 ```
 
 ## Options
 
 - `--aws-access-key ACCESS_KEY` "AWS Access Key"
 - `--aws-secret-access-key SECRET_KEY` "AWS Secret Access Key"
+- `--aws-session-token $AWS_SESSION_TOKEN` "AWS Session Token"
 - `--aws-region REGION` "AWS Region"
 - `--pattern STRING` "Snapshots without this string in the description will be ignored"
 - `--by-tags TAG=VALUE,TAG=VALUE` "Instead of rotating specific snapshots, rotate over all the snapshots having the intersection of all given TAG=VALUE pairs."
