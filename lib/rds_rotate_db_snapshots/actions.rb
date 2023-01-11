@@ -11,7 +11,7 @@ class RdsRotateDbSnapshots
           next
         end
 
-        keep_reason = rotate_period_based_decision
+        keep_reason = rotate_period_based_decision_with(time, snapshot)
         keep_reason = 'last snapshot' if keep_reason.nil? && snapshot == snapshots.last && options[:keep_last]
         rotate_or_keep_snapshot(keep_reason, time, snapshot_id)
       end
@@ -63,7 +63,7 @@ class RdsRotateDbSnapshots
 
     private
 
-    def rotate_period_based_decision
+    def rotate_period_based_decision_with(time, snapshot)
       # poor man's way to get a deep copy of our time_periods definition hash
       periods = Marshal.load(Marshal.dump(time_periods))
       keep_reason = nil
@@ -89,12 +89,7 @@ class RdsRotateDbSnapshots
     def rotate_or_keep_snapshot(keep_reason, time, snapshot_id)
       if keep_reason.nil?
         puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Deleting"
-        begin
-          client.delete_db_snapshot(db_snapshot_identifier: snapshot_id) unless options[:dry_run]
-        rescue Aws::RDS::Errors => e
-          backoff
-          retry
-        end
+        client.delete_db_snapshot(db_snapshot_identifier: snapshot_id) unless options[:dry_run]
       else
         puts "  #{time.strftime '%Y-%m-%d %H:%M:%S'} #{snapshot_id} Keeping for #{keep_reason}"
       end
