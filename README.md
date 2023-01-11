@@ -2,6 +2,8 @@
 
 [<img src="https://badge.fury.io/rb/rds-rotate-db-snapshots.svg" alt="Gem
 Version" />](https://badge.fury.io/rb/rds-rotate-db-snapshots) [![CI](https://github.com/serg-kovalev/rds-rotate-db-snapshots/actions/workflows/ci.yml/badge.svg?query=branch%3Amain+event%3Apush)](https://github.com/serg-kovalev/rds-rotate-db-snapshots/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush) [![CodeQL](https://github.com/serg-kovalev/rds-rotate-db-snapshots/actions/workflows/codeql.yml/badge.svg?query=branch%3Amain+event%3Apush)](https://github.com/serg-kovalev/rds-rotate-db-snapshots/actions/workflows/codeql.yml?query=branch%3Amain+event%3Apush)
+[![Maintainability](https://api.codeclimate.com/v1/badges/45bfe7dc4f21ac1403cb/maintainability)](https://codeclimate.com/github/serg-kovalev/rds-rotate-db-snapshots/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/45bfe7dc4f21ac1403cb/test_coverage)](https://codeclimate.com/github/serg-kovalev/rds-rotate-db-snapshots/test_coverage)
 
 Provides a simple way to rotate db snapshots in Amazon Relational Database
 Service (RDS).
