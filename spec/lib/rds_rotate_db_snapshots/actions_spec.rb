@@ -4,7 +4,7 @@ class Test
 
   attr_reader :options
 
-  def initialize(script_name: nil, cli: false, options: {})
+  def initialize(script_name: nil, options: {})
     @script_name = script_name
     @options = options
     @backoff_counter = 0
@@ -31,8 +31,7 @@ class Test
 end
 
 describe RdsRotateDbSnapshots::Actions do
-  subject { Test.new(script_name: 'test', cli: true, options: options) }
-
+  let(:test_class) { Test.new(script_name: 'test', options: options) }
   let(:client) { double("client") }
   let(:time_periods) do
     {
@@ -63,13 +62,13 @@ describe RdsRotateDbSnapshots::Actions do
 
   before do
     allow(client).to receive(:describe_db_snapshots).and_return(rds_snapshots)
-    allow(subject).to receive(:client).and_return(client)
+    allow(test_class).to receive(:client).and_return(client)
   end
 
   describe "#rotate_em" do
     it "deletes the snapshots that are not part of the specified time periods" do
       expect(client).to receive(:delete_db_snapshot)
-      subject.rotate_em(rds_snapshots)
+      test_class.rotate_em(rds_snapshots)
     end
 
     context 'when the snapshot is not matched with pattern' do
@@ -86,7 +85,7 @@ describe RdsRotateDbSnapshots::Actions do
 
       it "deletes the snapshots that are matched with pattern" do
         expect(client).to receive(:delete_db_snapshot).with(db_snapshot_identifier: 'test_snapshot')
-        subject.rotate_em(rds_snapshots)
+        test_class.rotate_em(rds_snapshots)
       end
     end
   end
@@ -94,12 +93,12 @@ describe RdsRotateDbSnapshots::Actions do
   describe "#create_snapshot" do
     it "creates a snapshot with the specified name" do
       expect(client).to receive(:create_db_snapshot)
-      subject.create_snapshot('test', ['test_db'])
+      test_class.create_snapshot('test', ['test_db'])
     end
 
     context "when snaphost name is invalid" do
       it "raises an error SystemExit" do
-        expect { subject.create_snapshot('$#', ['test_db']) }.to raise_error(SystemExit)
+        expect { test_class.create_snapshot('$#', ['test_db']) }.to raise_error(SystemExit)
       end
     end
   end
@@ -110,7 +109,7 @@ describe RdsRotateDbSnapshots::Actions do
     it "returns the list of snapshots from the client" do
       allow(snapshots).to receive(:[]).with(:marker).and_return(nil)
       expect(client).to receive(:describe_db_snapshots).and_return(snapshots)
-      snapshots = subject.get_db_snapshots(options)
+      snapshots = test_class.get_db_snapshots(options)
       expect(snapshots).to eq(rds_snapshots)
     end
   end
