@@ -88,3 +88,6 @@ Metrics/BlockLength:
 
 Style/HashSyntax:
   EnforcedShorthandSyntax: never
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
