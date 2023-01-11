@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: ["main"]
 
+env:
+  RUBY_MAIN_VERSION: '3.2'
+
 jobs:
   rubocop:
     runs-on: ubuntu-20.04
@@ -16,7 +19,7 @@ jobs:
         uses: ruby/setup-ruby@319066216501fbd5e2d568f14b7d68c19fb67a5d #v1.133.1
         with:
           bundler-cache: true
-          ruby-version: 3.2.0
+          ruby-version: ${{ env.RUBY_MAIN_VERSION }}.0
       - name: Install Bundler
         run: gem install bundler
       - name: Bundle Install
@@ -28,7 +31,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ruby_version: [2.7, 3.0, 3.1, 3.2]
+        ruby_version: ['2.7', '3.0', '3.1', '3.2']
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -40,6 +43,7 @@ jobs:
       - name: Install Bundler
         run: gem install bundler
       - name: Setup Code Climate test-reporter
+        if: ${{ matrix.ruby_version == env.RUBY_MAIN_VERSION }}
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
@@ -48,23 +52,12 @@ jobs:
         run: bundle install
       - name: Test
         run: bundle exec rspec
-      - name: Publish code coverage
+      - name: Publish Codeclimate Code Coverage
+        if: ${{ matrix.ruby_version == env.RUBY_MAIN_VERSION }}
         run: |
-          # export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
           ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
       - name: Coveralls Parallel
+        if: ${{ matrix.ruby_version == env.RUBY_MAIN_VERSION }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.ruby_version }}
-          parallel: true
-
-  finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
-        parallel-finished: true
