@@ -8,12 +8,16 @@ Version" />](https://badge.fury.io/rb/rds-rotate-db-snapshots) [![CI](https://gi
 Provides a simple way to rotate db snapshots in Amazon Relational Database
 Service (RDS).
 
+## Version 1.0.0 changes
+
+Removed support for ruby < 3.0.0
+
 ## Tested on Rubies
 
-- 2.7
 - 3.0
 - 3.1
 - 3.2
+- 3.3
 
 ## Usage
 
